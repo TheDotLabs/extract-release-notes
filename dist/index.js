@@ -1762,86 +1762,6 @@ exports.checkBypass = checkBypass;
 
 /***/ }),
 
-/***/ 270:
-/***/ (function(module, exports, __nccwpck_require__) {
-
-/* module decorator */ module = __nccwpck_require__.nmd(module);
-/*! https://mths.be/esrever v0.2.0 by @mathias */
-;(function(root) {
-
-	// Detect free variables `exports`
-	var freeExports =  true && exports;
-
-	// Detect free variable `module`
-	var freeModule =  true && module &&
-		module.exports == freeExports && module;
-
-	// Detect free variable `global`, from Node.js or Browserified code,
-	// and use it as `root`
-	var freeGlobal = typeof global == 'object' && global;
-	if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
-		root = freeGlobal;
-	}
-
-	/*--------------------------------------------------------------------------*/
-
-	var regexSymbolWithCombiningMarks = /([\0-\u02FF\u0370-\u1AAF\u1B00-\u1DBF\u1E00-\u20CF\u2100-\uD7FF\uE000-\uFE1F\uFE30-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])([\u0300-\u036F\u1AB0-\u1AFF\u1DC0-\u1DFF\u20D0-\u20FF\uFE20-\uFE2F]+)/g;
-	var regexSurrogatePair = /([\uD800-\uDBFF])([\uDC00-\uDFFF])/g;
-
-	var reverse = function(string) {
-		// Step 1: deal with combining marks and astral symbols (surrogate pairs)
-		string = string
-			// Swap symbols with their combining marks so the combining marks go first
-			.replace(regexSymbolWithCombiningMarks, function($0, $1, $2) {
-				// Reverse the combining marks so they will end up in the same order
-				// later on (after another round of reversing)
-				return reverse($2) + $1;
-			})
-			// Swap high and low surrogates so the low surrogates go first
-			.replace(regexSurrogatePair, '$2$1');
-		// Step 2: reverse the code units in the string
-		var result = '';
-		var index = string.length;
-		while (index--) {
-			result += string.charAt(index);
-		}
-		return result;
-	};
-
-	/*--------------------------------------------------------------------------*/
-
-	var esrever = {
-		'version': '0.2.0',
-		'reverse': reverse
-	};
-
-	// Some AMD build optimizers, like r.js, check for specific condition patterns
-	// like the following:
-	if (
-		typeof define == 'function' &&
-		typeof define.amd == 'object' &&
-		define.amd
-	) {
-		define(function() {
-			return esrever;
-		});
-	}	else if (freeExports && !freeExports.nodeType) {
-		if (freeModule) { // in Node.js, io.js, or RingoJS v0.8.0+
-			freeModule.exports = esrever;
-		} else { // in Narwhal or RingoJS v0.7.0-
-			for (var key in esrever) {
-				esrever.hasOwnProperty(key) && (freeExports[key] = esrever[key]);
-			}
-		}
-	} else { // in Rhino or a web browser
-		root.esrever = esrever;
-	}
-
-}(this));
-
-
-/***/ }),
-
 /***/ 294:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -2878,8 +2798,8 @@ module.exports = require("util");
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			id: moduleId,
-/******/ 			loaded: false,
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
@@ -2892,23 +2812,11 @@ module.exports = require("util");
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
 /******/ 	
-/******/ 		// Flag the module as loaded
-/******/ 		module.loaded = true;
-/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/node module decorator */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.nmd = (module) => {
-/******/ 			module.paths = [];
-/******/ 			if (!module.children) module.children = [];
-/******/ 			return module;
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
@@ -2921,33 +2829,34 @@ var __webpack_exports__ = {};
 const core = __nccwpck_require__(186)
 const fs = __nccwpck_require__(147)
 const readline = __nccwpck_require__(521)
-const esrever = __nccwpck_require__(270);
 
 const encoding = 'utf8'
 const eol = '\n'
-const topEmptyLines = new RegExp("^([" + eol + "]*)", "m");
 
 main().catch(err => core.setFailed(err.message))
+// test().catch(err => core.setFailed(err.message))
 
 async function main() {
     const changelogFile = core.getInput('changelog_file', {required: true})
     core.debug(`changelog-file = '${changelogFile}'`)
 
-    const releaseNotesFile = core.getInput('release_notes_file')
-    core.debug(`release-notes-file = '${releaseNotesFile}'`)
-
-    const prerelease = core.getInput('prerelease')
-    core.debug(`prerelease = '${prerelease}'`)
-
-    const releaseNotes = await extractReleaseNotes(changelogFile, prerelease)
+    const releaseNotes = await extractReleaseNotes(changelogFile)
     core.debug(`release-notes = '${releaseNotes}'`)
-
-    writeReleaseNotesFile(releaseNotesFile, releaseNotes)
 
     core.setOutput("release_notes", releaseNotes)
 }
 
-async function extractReleaseNotes(changelogFile, prerelease) {
+// eslint-disable-next-line no-unused-vars
+async function test() {
+    const changelogFile = 'CHANGELOG.md'
+    console.log(`${changelogFile}`)
+
+    const releaseNotes = await extractReleaseNotes(changelogFile)
+    console.log(`${releaseNotes}`)
+
+}
+
+async function extractReleaseNotes(changelogFile) {
     const fileStream = fs.createReadStream(changelogFile, {encoding: encoding})
     const rl = readline.createInterface({
         input: fileStream
@@ -2955,49 +2864,18 @@ async function extractReleaseNotes(changelogFile, prerelease) {
     const lines = []
     let inside_release = false
     for await (const line of rl) {
-        const start_of_release = (!!line.match("^#+ \\[[0-9]") || (prerelease === 'true' && !!line.match("^#+ \\[Unreleased\\]")))
-        if (inside_release) {
-            if (start_of_release) {
-                core.debug(`next version found: '${line}'`)
-                break
-            } else {
-                lines.push(line)
-                core.debug(`add line: '${line}'`)
-            }
-        } else {
-            if (start_of_release) {
-                inside_release = true
-                core.debug(`version found: '${line}'`)
-            } else {
-                core.debug(`skip line: '${line}'`)
-            }
+        const start_of_a_release = (!!line.startsWith("## ["));
+        if (inside_release && start_of_a_release) {
+            break
+        } else if (inside_release || start_of_a_release) {
+            inside_release = true
+            core.debug(`'${line}'`)
+            lines.push(line)
         }
     }
-    let releaseNotes = lines.reduce((previousValue, currentValue) => previousValue + eol + currentValue)
-    releaseNotes = trimEmptyLinesTop(releaseNotes)
-    releaseNotes = trimEmptyLinesBottom(releaseNotes)
-    return releaseNotes
+    let releaseNotes = lines.map(value=>value.toString()).reduce((previousValue, currentValue) => previousValue + eol + currentValue)
+    return releaseNotes.trim()
 }
-
-function trimEmptyLinesTop(releaseNotes) {
-    return releaseNotes.replace(topEmptyLines, '')
-}
-
-function trimEmptyLinesBottom(releaseNotes) {
-    return esrever.reverse(trimEmptyLinesTop(esrever.reverse(releaseNotes)))
-}
-
-function writeReleaseNotesFile(releaseNotesFile, releaseNotes) {
-    if (releaseNotesFile !== "") {
-        core.debug(`writing release notes file: '${releaseNotesFile}'`)
-        fs.writeFile(releaseNotesFile, releaseNotes, {encoding: encoding}, err => {
-            if (err) {
-                throw err
-            }
-        })
-    }
-}
-
 })();
 
 module.exports = __webpack_exports__;
