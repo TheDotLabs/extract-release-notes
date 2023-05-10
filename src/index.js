@@ -46,6 +46,13 @@ async function extractReleaseNotes(changelogFile) {
             lines.push(line)
         }
     }
-    let releaseNotes = lines.map(value=>value.toString()).reduce((previousValue, currentValue) => previousValue + eol + currentValue)
+    let truncatedLines=[]
+    if(lines.length>20){
+        truncatedLines=lines.slice(0,20)
+        truncatedLines.push(`... ${lines.length - 20} lines more ...`)
+    }else{
+        truncatedLines=lines
+    }
+    let releaseNotes = truncatedLines.map(value=>value.toString()).reduce((previousValue, currentValue) => previousValue + eol + currentValue)
     return releaseNotes.trim()
 }
